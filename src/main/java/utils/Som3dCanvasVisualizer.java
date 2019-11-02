@@ -3,8 +3,8 @@ package utils;
 import javafx.geometry.Point3D;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.effect.BlendMode;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.Rotate;
@@ -64,55 +64,59 @@ public class Som3dCanvasVisualizer extends AnimatedCanvasPane {
             this.type = Type.RECT;
         }
 
-        public void applDepthTransform() {
+        public void applDepthTransform(double zoomIn) {
             // apply camera z
-            double z_scale = 3. / (3.0 - point3D.getZ());
-            point3D = new Point3D(point3D.getX() * z_scale, point3D.getY() * z_scale, point3D.getZ());
+            double z_scale = 3. / (3.0 - point3D.getZ() - zoomIn);
+            point3D = new Point3D(point3D.getX() * z_scale, point3D.getY() * z_scale, -3.0 + point3D.getZ() + zoomIn);
             lineWidth *= z_scale;
             pointWidth *= z_scale;
         }
 
         public void render(GraphicsContext gc) {
 
-            // *******************
-            // stroke connections
-            // *******************
+            if (point3D.getZ() < -0.01) {
+                // *******************
+                // stroke connections
+                // *******************
 
-            if (prevSampleX != null) {
-                gc.setStroke(color);
-                gc.setLineWidth(lineWidth);
-                gc.strokeLine(prevSampleX.point3D.getX(), prevSampleX.point3D.getY(), point3D.getX(), point3D.getY());
-            }
+                if (prevSampleX != null) {
+                    gc.setStroke(color);
+                    gc.setLineWidth(lineWidth);
+                    gc.strokeLine(prevSampleX.point3D.getX(), prevSampleX.point3D.getY(), point3D.getX(), point3D.getY());
+                }
 
-            if (prevSampleY != null) {
-                gc.setStroke(color);
-                gc.setLineWidth(lineWidth);
-                gc.strokeLine(prevSampleY.point3D.getX(), prevSampleY.point3D.getY(), point3D.getX(), point3D.getY());
-            }
+                if (prevSampleY != null) {
+                    gc.setStroke(color);
+                    gc.setLineWidth(lineWidth);
+                    gc.strokeLine(prevSampleY.point3D.getX(), prevSampleY.point3D.getY(), point3D.getX(), point3D.getY());
+                }
 
-            // Draw point
-            if (this.type == Type.POINT) {
-                gc.setFill(color);
-                gc.fillOval(point3D.getX() - pointWidth * 0.5, point3D.getY() - pointWidth * 0.5, pointWidth, pointWidth);
-            }
+                // Draw point
+                if (this.type == Type.POINT) {
+                    gc.setFill(color);
+                    gc.fillOval(point3D.getX() - pointWidth * 0.5, point3D.getY() - pointWidth * 0.5, pointWidth, pointWidth);
+                }
 
-            // Fill rect
-            if (this.type == Type.RECT && prevSampleX != null && prevSampleY != null && prevSampleXY != null) {
-                gc.setFill(new Color(color.getRed(), color.getGreen(), color.getBlue(), 0.66));
-                xPoints[0] = point3D.getX();
-                xPoints[1] = prevSampleX.point3D.getX();
-                xPoints[2] = prevSampleXY.point3D.getX();
-                xPoints[3] = prevSampleY.point3D.getX();
-                yPoints[0] = point3D.getY();
-                yPoints[1] = prevSampleX.point3D.getY();
-                yPoints[2] = prevSampleXY.point3D.getY();
-                yPoints[3] = prevSampleY.point3D.getY();
-                gc.fillPolygon(xPoints, yPoints, 4);
+                // Fill rect
+                if (this.type == Type.RECT && prevSampleX != null && prevSampleY != null && prevSampleXY != null) {
+                    gc.setFill(new Color(color.getRed(), color.getGreen(), color.getBlue(), 0.75));
+                    xPoints[0] = point3D.getX();
+                    xPoints[1] = prevSampleX.point3D.getX();
+                    xPoints[2] = prevSampleXY.point3D.getX();
+                    xPoints[3] = prevSampleY.point3D.getX();
+                    yPoints[0] = point3D.getY();
+                    yPoints[1] = prevSampleX.point3D.getY();
+                    yPoints[2] = prevSampleXY.point3D.getY();
+                    yPoints[3] = prevSampleY.point3D.getY();
+                    gc.fillPolygon(xPoints, yPoints, 4);
+                }
             }
         }
     }
 
     public SelfOrganizingMap som;           // som to visualize
+    public double zoomIn = 0.;              // zoom in
+    public double animatedZoomIn = -1000.;  // animated zoom in which reaches zoom in after time
     public double rotationX = 0.5;          // camera rotation x
     public double rotationY = -0.4;         // comaera rotation y
     private double lastDragX = 0;           // last cursor drag position x
@@ -141,9 +145,16 @@ public class Som3dCanvasVisualizer extends AnimatedCanvasPane {
             lastDragX = e.getX();
             lastDragY = e.getY();
         });
+
+        // Listen for mouse scroll
+        getCanvas().addEventHandler(ScrollEvent.ANY, e -> {
+            zoomIn += 0.005 * e.getDeltaY();
+            zoomIn = Math.min(1.5, zoomIn);
+        });
     }
 
     public void updateView() {
+        animatedZoomIn = 0.75 * animatedZoomIn + 0.25 * zoomIn;
         if (som != null) {
             int numSamples = som.neuronPerDimension;
             fillCanvas1dto3dGraph(som, getCanvas(), dataPoints, rotationY, rotationX);
@@ -253,7 +264,7 @@ public class Som3dCanvasVisualizer extends AnimatedCanvasPane {
         Rotate rotation2 = new Rotate(Math.toDegrees(-rotationX), 0,0,0,new Point3D(1,0,0));
         for (Color3dSample sample : samples) {
             sample.point3D = rotation2.transform(rotation.transform(sample.point3D));
-            sample.applDepthTransform();
+            sample.applDepthTransform(animatedZoomIn);
         }
 
         // sort by z coord

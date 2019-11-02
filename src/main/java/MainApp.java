@@ -36,9 +36,9 @@ public class MainApp extends Application {
     public TrainingThread trainingThread;                       // Thread for training the som in parallel
     public Canvas distanceCanvas;                               // Canvas used to visualize the distance function
 
-    public volatile double eta = 0.02;                          // Learning rate
+    public volatile double eta = 0.01;                          // Learning rate
     public volatile int datasetIndex = 0;                       // Index of the training dataset
-    public volatile int numberOfNeurons = 100;                  // Wanted number of neurons for the som
+    public volatile int numberOfNeurons = 400;                  // Wanted number of neurons for the som
     public volatile double phi = 0.5;                           // Neighbourhood function variable
     public volatile int dimensions = 2;                         // Number of som dimensions
     public volatile long iteration = 0;                         // Current som training iteration
@@ -260,7 +260,7 @@ public class MainApp extends Application {
                     resetSom(true);
                 }
             }});
-        neuronsSlider.setValue(numberOfNeurons);
+        neuronsSlider.setValue(Math.log10(numberOfNeurons) * 1000);
 
         // dimension slider
         Label dimensionLabel = new Label("Neuron connections " + dimensions + " dimensional:");
