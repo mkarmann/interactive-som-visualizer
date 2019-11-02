@@ -77,6 +77,7 @@ public class MainApp extends Application {
 
     /**
      * Main method of the application
+     *
      * @param primaryStage
      * @throws Exception
      */
@@ -121,6 +122,7 @@ public class MainApp extends Application {
 
     /**
      * Creates the iteration information view
+     *
      * @return iteration information node.
      */
     public Node createNumericInfo() {
@@ -136,6 +138,7 @@ public class MainApp extends Application {
 
     /**
      * Creates the weights visualizer
+     *
      * @return Data information node.
      */
     public Node createDataInfo() {
@@ -146,7 +149,7 @@ public class MainApp extends Application {
         int rowIndex = 0;
 
         GridPane canvasGrid = new GridPane();
-        gridPane.addRow(rowIndex++, new Label("Neuron values (in color):"));
+        gridPane.addRow(rowIndex++, new Label("Neuron weights (xyz values are rgb colors):"));
 
         // canvas
         weightsVisualizer = new SomWeightsVisualizer(som, 10,10);
@@ -176,8 +179,8 @@ public class MainApp extends Application {
                 FXCollections.observableArrayList(
                         "Full Space",
                         "Color space",
-                        "Sphere volume",
-                        "Sphere surface",
+                        "Ball (volume)",
+                        "Sphere (surface)",
                         "Peanut volume",
                         "Plane"
                 );
@@ -186,6 +189,17 @@ public class MainApp extends Application {
             @Override
             public void changed(ObservableValue ov, String t, String t1) {
                 datasetIndex = options.indexOf(t1);
+
+                // reset data distplay
+                int n = 10000;
+                threeDVisualizer.dataPoints = new double[n * 3];
+                double datap[] = new double[3];
+                for (int i=0; i<threeDVisualizer.dataPoints.length / 3; i++) {
+                    fillInputData(datap);
+                    threeDVisualizer.dataPoints[i * 3] = datap[0];
+                    threeDVisualizer.dataPoints[i * 3 + 1] = datap[1];
+                    threeDVisualizer.dataPoints[i * 3 + 2] = datap[2];
+                }
             }
         });
         comboBox.setValue(options.get(0));
