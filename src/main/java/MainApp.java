@@ -38,7 +38,7 @@ public class MainApp extends Application {
 
     public volatile double eta = 0.02;                          // Learning rate
     public volatile int datasetIndex = 0;                       // Index of the training dataset
-    public volatile int neuronsPerDimension = 25;               // Number of som neurons per dimension
+    public volatile int numberOfNeurons = 100;                  // Wanted number of neurons for the som
     public volatile double phi = 0.5;                           // Neighbourhood function variable
     public volatile int dimensions = 2;                         // Number of som dimensions
     public volatile long iteration = 0;                         // Current som training iteration
@@ -85,7 +85,7 @@ public class MainApp extends Application {
     public void start(Stage primaryStage) throws Exception {
 
         // create start som
-        som = new SelfOrganizingMap(3, dimensions, neuronsPerDimension);
+        som = new SelfOrganizingMap(3, dimensions, 10);
 
         // initialize gui
         BorderPane rootPane = new BorderPane();
@@ -225,9 +225,9 @@ public class MainApp extends Application {
         // phi slider
         Label psiLabel = new Label("distance function (phi: )");
         gridPane.addRow(rowIndex++, psiLabel);
-        distanceCanvas = new Canvas(200,100);
+        distanceCanvas = new Canvas(250,100);
         gridPane.addRow(rowIndex++, distanceCanvas);
-        Slider psiSlider = new Slider(0.5, 6, 1);
+        Slider psiSlider = new Slider(0.5, 10, 1);
         psiSlider.setPadding(basicInset);
         psiSlider.valueProperty().addListener(new ChangeListener<Number>() {
             public void changed(ObservableValue<? extends Number> ov,
@@ -244,21 +244,23 @@ public class MainApp extends Application {
 
         // num neurons slider
         Label neuronDensityLabel = new Label("neurons: ");
-        Slider neuronsSlider = new Slider(2, 128, neuronsPerDimension - 1);
+        Slider neuronsSlider = new Slider(1000., 4000, numberOfNeurons - 1);
         neuronsSlider.setPadding(basicInset);
         neuronsSlider.valueProperty().addListener(new ChangeListener<Number>() {
             public void changed(ObservableValue<? extends Number> ov,
                                 Number old_val, Number new_val) {
-                neuronsPerDimension = new_val.intValue();
+                numberOfNeurons = (int)Math.round(Math.pow(10.0, new_val.doubleValue() / 1000.));
                 if (dimensions == 1) {
-                    neuronDensityLabel.setText("Number of neurons: " + neuronsPerDimension * neuronsPerDimension + " ( = " + neuronsPerDimension + " * " + neuronsPerDimension + " )");
+                    neuronDensityLabel.setText("Number of neurons: " + numberOfNeurons);
+                    resetSom(true);
                 }
                 else {
+                    int neuronsPerDimension = (int)Math.round(Math.sqrt(numberOfNeurons));
                     neuronDensityLabel.setText("Number of neurons: " + neuronsPerDimension * neuronsPerDimension + " ( " + neuronsPerDimension + "x" + neuronsPerDimension + " )");
+                    resetSom(true);
                 }
-                resetSom();
             }});
-        neuronsSlider.setValue(neuronsPerDimension);
+        neuronsSlider.setValue(numberOfNeurons);
 
         // dimension slider
         Label dimensionLabel = new Label("Neuron connections " + dimensions + " dimensional:");
@@ -274,12 +276,13 @@ public class MainApp extends Application {
                     dimensions = new_val.intValue();
                     dimensionLabel.setText("Neruon connections " + dimensions + " dimensional:");
                     if (dimensions == 1) {
-                        neuronDensityLabel.setText("Number of neurons: " + neuronsPerDimension * neuronsPerDimension + " ( = " + neuronsPerDimension + " * " + neuronsPerDimension + " )");
+                        neuronDensityLabel.setText("Number of neurons: " + numberOfNeurons);
                     }
                     else {
+                        int neuronsPerDimension = (int)Math.round(Math.sqrt(numberOfNeurons));
                         neuronDensityLabel.setText("Number of neurons: " + neuronsPerDimension * neuronsPerDimension + " ( " + neuronsPerDimension + "x" + neuronsPerDimension + " )");
                     }
-                    resetSom();
+                    resetSom(false);
                 }
             }});
 
@@ -287,7 +290,7 @@ public class MainApp extends Application {
         Button resetButton = new Button("Reset neurons");
         resetButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override public void handle(ActionEvent e) {
-                resetSom();
+                resetSom(false);
             }
         });
 
@@ -336,17 +339,26 @@ public class MainApp extends Application {
     /**
      * Reset the som
      */
-    public void resetSom() {
-        int neuronPerDim = neuronsPerDimension;
+    public void resetSom(boolean tryKeepProgress) {
+        int neuronPerDim = 0;
         if (dimensions == 1) {
-            neuronPerDim *= neuronsPerDimension;
+            neuronPerDim = numberOfNeurons;
+        }
+        else {
+            neuronPerDim = (int)Math.round(Math.sqrt(numberOfNeurons));
         }
 
-        som = new SelfOrganizingMap(3, dimensions, neuronPerDim);
+        if (tryKeepProgress) {
+            if (som.dimensions != dimensions || som.neuronPerDimension != neuronPerDim)
+            som = new SelfOrganizingMap(3, dimensions, neuronPerDim, som);
+        }
+        else {
+            som = new SelfOrganizingMap(3, dimensions, neuronPerDim);
+            iteration = 0;
+        }
         som.phi = phi;
         threeDVisualizer.som = som;
         weightsVisualizer.setSom(som);
-        iteration = 0;
     }
 
     /**

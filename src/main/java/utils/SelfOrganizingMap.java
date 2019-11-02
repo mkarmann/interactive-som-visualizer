@@ -53,6 +53,32 @@ public class SelfOrganizingMap {
         tmpIterators = new int[dimensions];
     }
 
+    public SelfOrganizingMap(int inputSize, int dimensions, int neuronPerDimension, SelfOrganizingMap map) {
+        this(inputSize, dimensions, neuronPerDimension);
+
+        if (map != null && map.dimensions == dimensions && map.inputSize == inputSize) {
+
+            // using nearest neighbour interpolation with some random shift
+            double tmpMapPositions[] = new double[dimensions];
+            double randomShift[] = new double[dimensions];
+            for (int d=0; d<dimensions; d++) {
+                randomShift[d] = Math.random() * 0.5 - 0.25;
+            }
+            for (int i=0; i<numNeurons; i++) {
+                for (int d=0; d<dimensions; d++) {
+                    double position = neuronGridPositions[i * dimensions + d];
+                    tmpMapPositions[d] = position / (neuronPerDimension) + (0.5 + randomShift[d]) / map.neuronPerDimension;
+                }
+
+                // copy position of nearest neighbour in the grid
+                int nearestNeighbourIndex = map.getNeuronIndexByGridPosition(tmpMapPositions);
+                for (int j=0; j<inputSize; j++) {
+                    weights[i * inputSize + j] = map.weights[nearestNeighbourIndex * map.inputSize + j];
+                }
+            }
+        }
+    }
+
     /**
      * Get the number of neurons
      *
@@ -250,7 +276,9 @@ public class SelfOrganizingMap {
     /**
      * Get the neuron index by the n-dimension grid position
      *
-     * @param gridPosition N-dimensional grid position
+     * Important, this method accesses the neurons in the range 0. to 1.
+     *
+     * @param gridPosition N-dimensional grid position with values from 0. to 1.
      * @return
      */
     public int getNeuronIndexByGridPosition(double[] gridPosition) {
