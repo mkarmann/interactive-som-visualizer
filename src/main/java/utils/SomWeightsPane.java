@@ -8,11 +8,11 @@ import javafx.scene.paint.Color;
 /**
  * Visualize the weights of the som in a canvas
  */
-public class SomWeightsVisualizer extends AnimatedCanvasPane {
+public class SomWeightsPane extends AnimatedCanvasPane {
     private volatile SelfOrganizingMap som;
     private final int PIXELS_WIDTH_PER_NEURON = 4;
 
-    public SomWeightsVisualizer(SelfOrganizingMap som, double width, double height) {
+    public SomWeightsPane(SelfOrganizingMap som, double width, double height) {
         super(width, height);
         this.som = som;
         updateCanvasSize();

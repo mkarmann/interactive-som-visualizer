@@ -16,7 +16,7 @@ import java.util.Comparator;
 /**
  * Visualize the som network in 3d
  */
-public class Som3dCanvasVisualizer extends AnimatedCanvasPane {
+public class Som3dCanvasPane extends AnimatedCanvasPane {
 
     /**
      * Subclass for storing one 3d data point
@@ -25,6 +25,7 @@ public class Som3dCanvasVisualizer extends AnimatedCanvasPane {
         public Color3dSample prevSampleX;
         public Color3dSample prevSampleY;
         public Color3dSample prevSampleXY;
+        public Color3dSample prevSampleZ;
         public Point3D point3D;
         public Color color;
         public double pointWidth = 0.015;
@@ -35,6 +36,7 @@ public class Som3dCanvasVisualizer extends AnimatedCanvasPane {
             POINT,
             LINE,
             RECT,
+            CUBE,
         }
 
         // temp variables
@@ -91,6 +93,12 @@ public class Som3dCanvasVisualizer extends AnimatedCanvasPane {
                     gc.strokeLine(prevSampleY.point3D.getX(), prevSampleY.point3D.getY(), point3D.getX(), point3D.getY());
                 }
 
+                if (prevSampleZ != null) {
+                    gc.setStroke(color);
+                    gc.setLineWidth(lineWidth);
+                    gc.strokeLine(prevSampleZ.point3D.getX(), prevSampleZ.point3D.getY(), point3D.getX(), point3D.getY());
+                }
+
                 // Draw point
                 if (this.type == Type.POINT) {
                     gc.setFill(color);
@@ -116,19 +124,21 @@ public class Som3dCanvasVisualizer extends AnimatedCanvasPane {
 
     public SelfOrganizingMap som;           // som to visualize
     public double zoomIn = 0.;              // zoom in
-    public double animatedZoomIn = -1000.;  // animated zoom in which reaches zoom in after time
+    public double animatedZoomIn = -500.;   // animated zoom in which reaches zoom in after time
     public double rotationX = 0.5;          // camera rotation x
     public double rotationY = -0.4;         // comaera rotation y
     private double lastDragX = 0;           // last cursor drag position x
     private double lastDragY = 0;           // last cursor drag position y
     public double dataPoints[];             // 3d data points for data preview
+    public boolean renderSom = true;        // display the som map
+    public boolean renderDataPoints = true; // display the data points
 
-    public Som3dCanvasVisualizer(SelfOrganizingMap som, double width, double height) {
+    public Som3dCanvasPane(SelfOrganizingMap som, double width, double height) {
         this(width, height);
         this.som = som;
     }
 
-    public Som3dCanvasVisualizer(double width, double height) {
+    public Som3dCanvasPane(double width, double height) {
         super(width, height);
 
         // Store drag start positions
@@ -163,8 +173,24 @@ public class Som3dCanvasVisualizer extends AnimatedCanvasPane {
 
     public boolean fillCanvas1dto3dGraph(SelfOrganizingMap som, Canvas canvas, double[] trainingData, double rotationY, double rotationX) {
 
-        int numTrainingDataSamples = trainingData != null ? trainingData.length / 3 : 0;
-        boolean is1dInput = som.dimensions == 1;
+        int numDataSamples = renderDataPoints && trainingData != null ? trainingData.length / 3 : 0;
+        int numSomSamples = 0;
+
+        if (renderSom) {
+            switch (som.dimensions) {
+                case 1:
+                    numSomSamples = som.neuronPerDimension;
+                    break;
+
+                case 2:
+                    numSomSamples = som.neuronPerDimension * som.neuronPerDimension;
+                    break;
+
+                case 3:
+                    numSomSamples = som.neuronPerDimension * som.neuronPerDimension * som.neuronPerDimension;
+            }
+        }
+
         double w = canvas.getWidth();
         double h = canvas.getHeight();
         GraphicsContext gc = canvas.getGraphicsContext2D();
@@ -174,9 +200,9 @@ public class Som3dCanvasVisualizer extends AnimatedCanvasPane {
         double scale = Math.min(w,h) * 0.5 / Math.sqrt(3);
         gc.transform(new Affine(new Translate(w * 0.5, h * 0.5)));
         gc.transform(new Affine(new Scale(scale, scale)));
-        Color3dSample samples[] = new Color3dSample[(is1dInput ? som.neuronPerDimension : som.neuronPerDimension * som.neuronPerDimension) + 3 + numTrainingDataSamples];
+        Color3dSample samples[] = new Color3dSample[numSomSamples + 3 + numDataSamples];
         Color3dSample centerSample;
-        double[] inputs = new double[is1dInput ? 1 : 2];
+        double[] inputs = new double[som.dimensions];
         double[] outputs = new double[3];
         double delta = 1.0 / (som.neuronPerDimension - 1);
 
@@ -193,7 +219,7 @@ public class Som3dCanvasVisualizer extends AnimatedCanvasPane {
         // ******************
         // Add training data
         // ******************
-        if (trainingData != null) {
+        if (renderDataPoints && trainingData != null) {
             for (int i=0; i<trainingData.length / 3; i++) {
                 samples[samplesIndex++] = new Color3dSample(
                         new Point3D(
@@ -209,53 +235,89 @@ public class Som3dCanvasVisualizer extends AnimatedCanvasPane {
         // Add som data
         // *************
         int somDataStartIndex = samplesIndex;
-        if (is1dInput) {
-            // collect 1d network output
-            Color3dSample lastSample = null;
-            for (int i = 0; i < som.neuronPerDimension; i++) {
-                inputs[0] = i * delta;
-                som.getNeuronWeightsFromGridPosition(inputs, outputs);
-                samples[somDataStartIndex+ i] = new Color3dSample(
-                        lastSample,
-                        new Point3D(outputs[0], -outputs[1], outputs[2]),
-                        Color.rgb(
-                                Math.min(255, Math.max(0, (int) (255 * outputs[0]))),
-                                Math.min(255, Math.max(0, (int) (255 * outputs[1]))),
-                                Math.min(255, Math.max(0, (int) (255 * outputs[2])))
-                        ),
-                        3 / scale);
-                lastSample = samples[somDataStartIndex + i];
-            }
-        }
-        else {
-            // collect 2d network output
-            for (int x=0; x<som.neuronPerDimension; x++) {
-                for (int y=0; y<som.neuronPerDimension; y++) {
-                    int index = somDataStartIndex + x + y * som.neuronPerDimension;
-                    inputs[0] = x * delta;
-                    inputs[1] = y * delta;
+        if (renderSom) {
+            if (som.dimensions == 1) {
+                // collect 1d network output
+                Color3dSample lastSample = null;
+                for (int i = 0; i < som.neuronPerDimension; i++) {
+                    inputs[0] = i * delta;
                     som.getNeuronWeightsFromGridPosition(inputs, outputs);
-                    Color3dSample sample = new Color3dSample(
-                            null,
+                    samples[somDataStartIndex + i] = new Color3dSample(
+                            lastSample,
                             new Point3D(outputs[0], -outputs[1], outputs[2]),
                             Color.rgb(
                                     Math.min(255, Math.max(0, (int) (255 * outputs[0]))),
                                     Math.min(255, Math.max(0, (int) (255 * outputs[1]))),
                                     Math.min(255, Math.max(0, (int) (255 * outputs[2])))
                             ),
-                            1 / scale);
-                    sample.type = Color3dSample.Type.RECT;
-                    if (x != 0) {
-                        sample.prevSampleX = samples[somDataStartIndex + (x - 1) + y * som.neuronPerDimension];
-                    }
-                    if (y != 0) {
-                        sample.prevSampleY = samples[somDataStartIndex + x + (y - 1) * som.neuronPerDimension];
-                    }
-                    if (x != 0 && y != 0) {
-                        sample.prevSampleXY = samples[somDataStartIndex + (x - 1) + (y - 1) * som.neuronPerDimension];
-                    }
+                            3 / scale);
+                    lastSample = samples[somDataStartIndex + i];
+                }
+            } else if (som.dimensions == 2){
+                // collect 2d network output
+                for (int x = 0; x < som.neuronPerDimension; x++) {
+                    for (int y = 0; y < som.neuronPerDimension; y++) {
+                        int index = somDataStartIndex + x + y * som.neuronPerDimension;
+                        inputs[0] = x * delta;
+                        inputs[1] = y * delta;
+                        som.getNeuronWeightsFromGridPosition(inputs, outputs);
+                        Color3dSample sample = new Color3dSample(
+                                null,
+                                new Point3D(outputs[0], -outputs[1], outputs[2]),
+                                Color.rgb(
+                                        Math.min(255, Math.max(0, (int) (255 * outputs[0]))),
+                                        Math.min(255, Math.max(0, (int) (255 * outputs[1]))),
+                                        Math.min(255, Math.max(0, (int) (255 * outputs[2])))
+                                ),
+                                2 / scale);
+                        sample.type = Color3dSample.Type.RECT;
+                        if (x != 0) {
+                            sample.prevSampleX = samples[somDataStartIndex + (x - 1) + y * som.neuronPerDimension];
+                        }
+                        if (y != 0) {
+                            sample.prevSampleY = samples[somDataStartIndex + x + (y - 1) * som.neuronPerDimension];
+                        }
+                        if (x != 0 && y != 0) {
+                            sample.prevSampleXY = samples[somDataStartIndex + (x - 1) + (y - 1) * som.neuronPerDimension];
+                        }
 
-                    samples[index] = sample;
+                        samples[index] = sample;
+                    }
+                }
+            }
+            else if (som.dimensions == 3) {
+                // collect 3d network output
+                for (int x = 0; x < som.neuronPerDimension; x++) {
+                    for (int y = 0; y < som.neuronPerDimension; y++) {
+                        for (int z = 0; z < som.neuronPerDimension; z++) {
+                            int index = somDataStartIndex + x + y * som.neuronPerDimension + z * som.neuronPerDimension * som.neuronPerDimension;
+                            inputs[0] = x * delta;
+                            inputs[1] = y * delta;
+                            inputs[2] = z * delta;
+                            som.getNeuronWeightsFromGridPosition(inputs, outputs);
+                            Color3dSample sample = new Color3dSample(
+                                    null,
+                                    new Point3D(outputs[0], -outputs[1], outputs[2]),
+                                    Color.rgb(
+                                            Math.min(255, Math.max(0, (int) (255 * outputs[0]))),
+                                            Math.min(255, Math.max(0, (int) (255 * outputs[1]))),
+                                            Math.min(255, Math.max(0, (int) (255 * outputs[2])))
+                                    ),
+                                    1 / scale);
+                            sample.type = Color3dSample.Type.POINT;
+                            if (x != 0) {
+                                sample.prevSampleX = samples[index - 1];
+                            }
+                            if (y != 0) {
+                                sample.prevSampleY = samples[index - som.neuronPerDimension];
+                            }
+                            if (z != 0) {
+                                sample.prevSampleZ = samples[index - som.neuronPerDimension * som.neuronPerDimension];
+                            }
+
+                            samples[index] = sample;
+                        }
+                    }
                 }
             }
         }

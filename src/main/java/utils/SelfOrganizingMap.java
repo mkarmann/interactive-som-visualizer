@@ -179,15 +179,8 @@ public class SelfOrganizingMap {
             while (true) {
                 if (tmpIterators[currentDimension] == neuronPerDimension - 1 | influenceToSmall) {
 
-                    // stop if the iterator is 0 because then we reached the end
-                    if (influenceToSmall) {
-                        if (tmpIterators[currentDimension] == 0) {
-                            currentDimension = dimensions;
-                            break;
-                        }
-
-                        influenceToSmall = false;
-                    }
+                    // ensure to only change the first dimension by to small influence
+                    influenceToSmall = false;
 
                     // next dimension
                     tmpIterators[currentDimension] = 0;
@@ -267,7 +260,7 @@ public class SelfOrganizingMap {
         int product = 1;
         for (int d=0; d<dimensions; d++){
             int nextProduct = product * neuronPerDimension;
-            neuronGridIndices[index * dimensions + d] = ((index / product) % nextProduct);
+            neuronGridIndices[index * dimensions + d] = ((index / product) % neuronPerDimension);
             neuronGridPositions[index * dimensions + d] = neuronGridIndices[index * dimensions + d];
             product = nextProduct;
         }
