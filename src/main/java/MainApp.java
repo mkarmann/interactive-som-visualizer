@@ -17,7 +17,6 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import utils.CanvasPane;
 import utils.SelfOrganizingMap;
 import utils.Som3dCanvasPane;
 import utils.SomWeightsPane;
@@ -116,13 +115,14 @@ public class MainApp extends Application {
 
         VBox vBox = new VBox();
 
-        CheckBox renderSom = new CheckBox("Show SOM");
-        CheckBox renderData = new CheckBox("Show data");
+        CheckBox renderAxis = new CheckBox("Display axis");
+        CheckBox renderData = new CheckBox("Display input");
+        CheckBox renderSom = new CheckBox("Display map");
 
-        renderSom.selectedProperty().addListener(new ChangeListener<Boolean>() {
+        renderAxis.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                threeDVisualizer.renderSom = newValue;
+                threeDVisualizer.renderAxis = newValue;
             }
         });
 
@@ -133,10 +133,18 @@ public class MainApp extends Application {
             }
         });
 
-        renderSom.setSelected(threeDVisualizer.renderSom);
-        renderData.setSelected(threeDVisualizer.renderDataPoints);
+        renderSom.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                threeDVisualizer.renderSom = newValue;
+            }
+        });
 
-        vBox.getChildren().addAll(renderSom, renderData);
+        renderAxis.setSelected(threeDVisualizer.renderAxis);
+        renderData.setSelected(threeDVisualizer.renderDataPoints);
+        renderSom.setSelected(threeDVisualizer.renderSom);
+
+        vBox.getChildren().addAll(renderAxis, renderData, renderSom);
         borderPane.setRight(vBox);
         borderPane.setCenter(threeDVisualizer);
 
@@ -198,14 +206,19 @@ public class MainApp extends Application {
         Insets basicInset = new Insets(0,0,15,0);
 
         // input combobox
+        Label inputLabel = new Label("Input data: ");
         ObservableList<String> datasetOptions =
                 FXCollections.observableArrayList(
                         "Full Space",
-                        "Color space",
                         "Ball (volume)",
                         "Sphere (surface)",
                         "Peanut volume",
-                        "Plane"
+                        "1 area distribution",
+                        "2 area distribution",
+                        "3 area distribution",
+                        "Plane",
+                        "Mandelbrot set",
+                        "Mandelbrot outline"
                 );
         final ComboBox inputCombobox = new ComboBox(datasetOptions);
         inputCombobox.valueProperty().addListener(new ChangeListener<String>() {
@@ -226,10 +239,6 @@ public class MainApp extends Application {
             }
         });
         inputCombobox.setValue(datasetOptions.get(0));
-        GridPane inputGrid = new GridPane();
-        inputGrid.addRow(0, new Label("Input data: "), inputCombobox);
-        gridPane.addRow(rowIndex++, inputGrid);
-        gridPane.addRow(rowIndex++, new Text(""));
 
         // eta slider
         Label etaLabel = new Label("Learning rate (eta: )");
@@ -311,6 +320,9 @@ public class MainApp extends Application {
             }
         });
 
+        gridPane.addRow(rowIndex++, inputLabel);
+        gridPane.addRow(rowIndex++, inputCombobox);
+        gridPane.addRow(rowIndex++, new Label(""));
         gridPane.addRow(rowIndex++, dimensionLabel);
         gridPane.addRow(rowIndex++, dimensionsPane);
         gridPane.addRow(rowIndex++, etaLabel);
@@ -469,13 +481,6 @@ public class MainApp extends Application {
                 break;
 
             case 1:
-                // color space
-                for (int i=0; i<input.length; i++) {
-                    input[i] = Math.random();
-                }
-                break;
-
-            case 2:
                 // sphere volume
                 do {
                     distanceSq = 0;
@@ -486,7 +491,7 @@ public class MainApp extends Application {
                 } while (distanceSq > 1);
                 break;
 
-            case 3:
+            case 2:
                 // sphere surface
                 do {
                     distanceSq = 0;
@@ -503,7 +508,7 @@ public class MainApp extends Application {
 
                 break;
 
-            case 4:
+            case 3:
                 // peanut
             {
                 double spheresRadius = 0.6;
@@ -521,8 +526,29 @@ public class MainApp extends Application {
             }
             break;
 
-
+            case 4:
             case 5:
+            case 6:
+                // n-point density
+                int index = (int)(Math.random() * (datasetIndex - 3));
+
+                switch (index) {
+                    case 0:
+                        setDistributionPoint(input, 0, 0, 0);
+                        break;
+                    case 1:
+                        setDistributionPoint(input, 0.5, Math.random() * 0.1 + 0.1, Math.random() * 0.2 + 0.2);
+                        break;
+
+                    default:
+                        double f = Math.random();
+                        double sX = Math.sin(f) * 0.3;
+                        double sY = Math.cos(f) * 0.5;
+                        setDistributionPoint(input, -0.5 + sX, 1. - sY, -0.8);
+                }
+                break;
+
+            case 7:
                 // plane
                 for (int i = 0; i < input.length; i++) {
                     if (i < 2) {
@@ -534,6 +560,103 @@ public class MainApp extends Application {
                 }
                 break;
 
+            case 8:
+                // mandelbrot set
+                while (true) {
+                    double ci = Math.random() * 2 - 1.;
+                    double cr = Math.random() * 2 - 1.5;
+                    double z0 = Math.random() * 2 - 1.;
+                    if (checkInMandelbrotSet(ci, cr, 0)) {
+                        input[0] = cr + 0.5;
+                        input[1] = ci;
+                        input[2] = 0;
+                        break;
+                    }
+                }
+                break;
+
+            case 9:
+                // mandelbrot outline
+                while (true) {
+                    double ci = Math.random() * 2 - 1.;
+                    double cr = Math.random() * 2 - 1.5;
+                    double z0 = Math.random() * 2 - 1.;
+                    if (checkInMandelbrotOutline(ci, cr, 0)) {
+                        input[0] = cr + 0.5;
+                        input[1] = ci;
+                        input[2] = 0;
+                        break;
+                    }
+                }
+                break;
+
         }
     }
+
+    public void setDistributionPoint(double input[], double x, double y, double z) {
+        while (true) {
+            double dx = Math.random() * 4. - 2.;
+            double dy = Math.random() * 4. - 2.;
+            double dz = Math.random() * 4. - 2.;
+
+            double dSq = dx * dx + dy * dy + dz * dz;
+            dSq = dSq * dSq;
+            dSq = dSq * dSq;
+            dSq = dSq * dSq;
+            dSq = dSq * dSq;
+            dSq = (dSq * dSq + 1.0) * 0.1;
+
+            dx *= dSq;
+            dy *= dSq;
+            dz *= dSq;
+
+            dx += x;
+            dy += y;
+            dz += z;
+
+            if (
+                    dx >= -1 && dx <= 1. &&
+                    dy >= -1 && dy <= 1. &&
+                    dz >= -1 && dz <= 1.) {
+                input[0] = dx;
+                input[1] = dy;
+                input[2] = dz;
+                break;
+            }
+        }
+    }
+
+    // Mandelbrot set implementation based on
+    // https://www.hameister.org/projects_fractal.html
+    public boolean checkInMandelbrotSet(double ci, double c, double z0) {
+        double zi = 0;
+        double z = z0;
+        for (int i = 0; i < 50; i++) {
+            double ziT = 2 * (z * zi);
+            double zT = z * z - (zi * zi);
+            z = zT + c;
+            zi = ziT + ci;
+            if (z * z + zi * zi >= 4.0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean checkInMandelbrotOutline(double ci, double c, double z0) {
+        double zi = 0;
+        double z = z0;
+        for (int i = 0; i < 50; i++) {
+            double ziT = 2 * (z * zi);
+            double zT = z * z - (zi * zi);
+            z = zT + c;
+            zi = ziT + ci;
+            if (z * z + zi * zi >= 4.0) {
+                return i > 10;
+            }
+        }
+        return false;
+    }
+
+
 }

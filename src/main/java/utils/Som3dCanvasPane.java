@@ -28,6 +28,7 @@ public class Som3dCanvasPane extends AnimatedCanvasPane {
         public Color3dSample prevSampleZ;
         public Point3D point3D;
         public Color color;
+        public Color connectionsColor = Color.WHITE;
         public double pointWidth = 0.015;
         public double lineWidth;
         public Type type;
@@ -43,16 +44,18 @@ public class Som3dCanvasPane extends AnimatedCanvasPane {
         private static double[] xPoints = new double[4];
         private static double[] yPoints = new double[4];
 
-        public Color3dSample(Point3D point3D, Color color) {
+        public Color3dSample(Point3D point3D, Color color, double pointWidth) {
             this.point3D = point3D;
             this.color = color;
             this.type = Type.POINT;
+            this.pointWidth = pointWidth;
         }
 
         public Color3dSample(Color3dSample prevSample, Point3D point3D, Color color, double lineWidht) {
             this.prevSampleX = prevSample;
             this.point3D = point3D;
             this.color = color;
+            this.connectionsColor = color;
             this.lineWidth = lineWidht;
             this.type = Type.LINE;
         }
@@ -82,19 +85,19 @@ public class Som3dCanvasPane extends AnimatedCanvasPane {
                 // *******************
 
                 if (prevSampleX != null) {
-                    gc.setStroke(color);
+                    gc.setStroke(connectionsColor);
                     gc.setLineWidth(lineWidth);
                     gc.strokeLine(prevSampleX.point3D.getX(), prevSampleX.point3D.getY(), point3D.getX(), point3D.getY());
                 }
 
                 if (prevSampleY != null) {
-                    gc.setStroke(color);
+                    gc.setStroke(connectionsColor);
                     gc.setLineWidth(lineWidth);
                     gc.strokeLine(prevSampleY.point3D.getX(), prevSampleY.point3D.getY(), point3D.getX(), point3D.getY());
                 }
 
                 if (prevSampleZ != null) {
-                    gc.setStroke(color);
+                    gc.setStroke(connectionsColor);
                     gc.setLineWidth(lineWidth);
                     gc.strokeLine(prevSampleZ.point3D.getX(), prevSampleZ.point3D.getY(), point3D.getX(), point3D.getY());
                 }
@@ -132,6 +135,7 @@ public class Som3dCanvasPane extends AnimatedCanvasPane {
     public double dataPoints[];             // 3d data points for data preview
     public boolean renderSom = true;        // display the som map
     public boolean renderDataPoints = true; // display the data points
+    public boolean renderAxis = true;       // display the coordinate system axis.
 
     public Som3dCanvasPane(SelfOrganizingMap som, double width, double height) {
         this(width, height);
@@ -150,10 +154,12 @@ public class Som3dCanvasPane extends AnimatedCanvasPane {
         // Listen for mouse drag events
         getCanvas().addEventHandler(MouseEvent.MOUSE_DRAGGED, e -> {
             double factor = 1 / Math.min(getWidth(), getHeight()) * 2 * Math.PI;
-            rotationY += (e.getX() - lastDragX) * factor;
+            rotationY +=(e.getX() - lastDragX) * factor;
             rotationX += (e.getY() - lastDragY) * factor;
             lastDragX = e.getX();
             lastDragY = e.getY();
+
+            rotationX =  Math.min(0.5 * Math.PI, Math.max(-0.5 * Math.PI, rotationX));
         });
 
         // Listen for mouse scroll
@@ -175,6 +181,7 @@ public class Som3dCanvasPane extends AnimatedCanvasPane {
 
         int numDataSamples = renderDataPoints && trainingData != null ? trainingData.length / 3 : 0;
         int numSomSamples = 0;
+        int numAxisSamples = renderAxis ? 3 : 0;
 
         if (renderSom) {
             switch (som.dimensions) {
@@ -200,7 +207,7 @@ public class Som3dCanvasPane extends AnimatedCanvasPane {
         double scale = Math.min(w,h) * 0.5 / Math.sqrt(3);
         gc.transform(new Affine(new Translate(w * 0.5, h * 0.5)));
         gc.transform(new Affine(new Scale(scale, scale)));
-        Color3dSample samples[] = new Color3dSample[numSomSamples + 3 + numDataSamples];
+        Color3dSample samples[] = new Color3dSample[numSomSamples + numAxisSamples + numDataSamples];
         Color3dSample centerSample;
         double[] inputs = new double[som.dimensions];
         double[] outputs = new double[3];
@@ -210,10 +217,12 @@ public class Som3dCanvasPane extends AnimatedCanvasPane {
         int samplesIndex = 0;
 
         // stroke coord system
-        centerSample = new Color3dSample(null, new Point3D(0,0,0), Color.BLACK, 1.0 / scale);
-        samples[samplesIndex++] = new Color3dSample(centerSample, new Point3D(1,0,0), Color.rgb(255,0,0,0.25), 5.0 / scale);
-        samples[samplesIndex++] = new Color3dSample(centerSample, new Point3D(0,-1,0), Color.rgb(0,128,0,0.25), 5.0 / scale);
-        samples[samplesIndex++] = new Color3dSample(centerSample, new Point3D(0,0,1), Color.rgb(0,0,255,0.25), 5.0 / scale);
+        if (renderAxis) {
+            centerSample = new Color3dSample(null, new Point3D(0, 0, 0), Color.BLACK, 1.0 / scale);
+            samples[samplesIndex++] = new Color3dSample(centerSample, new Point3D(1, 0, 0), Color.rgb(255, 0, 0, 0.25), 5.0 / scale);
+            samples[samplesIndex++] = new Color3dSample(centerSample, new Point3D(0, -1, 0), Color.rgb(0, 128, 0, 0.25), 5.0 / scale);
+            samples[samplesIndex++] = new Color3dSample(centerSample, new Point3D(0, 0, 1), Color.rgb(0, 0, 255, 0.25), 5.0 / scale);
+        }
 
 
         // ******************
@@ -226,7 +235,8 @@ public class Som3dCanvasPane extends AnimatedCanvasPane {
                                 trainingData[i * 3],
                                 -trainingData[i * 3 + 1],
                                 trainingData[i * 3 + 2] ),
-                        Color.rgb(200,200,200, .33));
+                        Color.rgb(200,200,200, .33),
+                        0.015);
             }
         }
 
@@ -242,14 +252,13 @@ public class Som3dCanvasPane extends AnimatedCanvasPane {
                 for (int i = 0; i < som.neuronPerDimension; i++) {
                     inputs[0] = i * delta;
                     som.getNeuronWeightsFromGridPosition(inputs, outputs);
+                    int r = Math.min(255, Math.max(0, (int) (127.5 * (outputs[0] + 1))));
+                    int g = Math.min(255, Math.max(0, (int) (127.5 * (outputs[1] + 1))));
+                    int b = Math.min(255, Math.max(0, (int) (127.5 * (outputs[2] + 1))));
                     samples[somDataStartIndex + i] = new Color3dSample(
                             lastSample,
                             new Point3D(outputs[0], -outputs[1], outputs[2]),
-                            Color.rgb(
-                                    Math.min(255, Math.max(0, (int) (255 * outputs[0]))),
-                                    Math.min(255, Math.max(0, (int) (255 * outputs[1]))),
-                                    Math.min(255, Math.max(0, (int) (255 * outputs[2])))
-                            ),
+                            Color.rgb(r, g, b),
                             3 / scale);
                     lastSample = samples[somDataStartIndex + i];
                 }
@@ -261,16 +270,16 @@ public class Som3dCanvasPane extends AnimatedCanvasPane {
                         inputs[0] = x * delta;
                         inputs[1] = y * delta;
                         som.getNeuronWeightsFromGridPosition(inputs, outputs);
+                        int r = Math.min(255, Math.max(0, (int) (127.5 * (outputs[0] + 1))));
+                        int g = Math.min(255, Math.max(0, (int) (127.5 * (outputs[1] + 1))));
+                        int b = Math.min(255, Math.max(0, (int) (127.5 * (outputs[2] + 1))));
                         Color3dSample sample = new Color3dSample(
                                 null,
                                 new Point3D(outputs[0], -outputs[1], outputs[2]),
-                                Color.rgb(
-                                        Math.min(255, Math.max(0, (int) (255 * outputs[0]))),
-                                        Math.min(255, Math.max(0, (int) (255 * outputs[1]))),
-                                        Math.min(255, Math.max(0, (int) (255 * outputs[2])))
-                                ),
-                                2 / scale);
+                                Color.rgb(r, g, b),
+                                1 / scale);
                         sample.type = Color3dSample.Type.RECT;
+                        sample.connectionsColor = Color.rgb((255 * 3 + r) / 4, (255 * 3 + g) / 4, (b + 255 * 3) / 4);
                         if (x != 0) {
                             sample.prevSampleX = samples[somDataStartIndex + (x - 1) + y * som.neuronPerDimension];
                         }
@@ -295,15 +304,15 @@ public class Som3dCanvasPane extends AnimatedCanvasPane {
                             inputs[1] = y * delta;
                             inputs[2] = z * delta;
                             som.getNeuronWeightsFromGridPosition(inputs, outputs);
+                            int r = Math.min(255, Math.max(0, (int) (127.5 * (outputs[0] + 1))));
+                            int g = Math.min(255, Math.max(0, (int) (127.5 * (outputs[1] + 1))));
+                            int b = Math.min(255, Math.max(0, (int) (127.5 * (outputs[2] + 1))));
                             Color3dSample sample = new Color3dSample(
                                     null,
                                     new Point3D(outputs[0], -outputs[1], outputs[2]),
-                                    Color.rgb(
-                                            Math.min(255, Math.max(0, (int) (255 * outputs[0]))),
-                                            Math.min(255, Math.max(0, (int) (255 * outputs[1]))),
-                                            Math.min(255, Math.max(0, (int) (255 * outputs[2])))
-                                    ),
+                                    Color.rgb(r, g, b),
                                     1 / scale);
+                            sample.pointWidth = 0.02;
                             sample.type = Color3dSample.Type.POINT;
                             if (x != 0) {
                                 sample.prevSampleX = samples[index - 1];

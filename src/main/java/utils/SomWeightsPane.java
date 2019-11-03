@@ -60,8 +60,11 @@ public class SomWeightsPane extends AnimatedCanvasPane {
                     input[1] = (double) y / height;
                 }
                 som.getNeuronWeightsFromGridPosition(input, output);
-                Color color = new Color(Math.max(Math.min(output[0], 1.0), 0.0), Math.max(Math.min(output[1], 1.0), 0.0), Math.max(Math.min(output[2], 1.0), 0.0), 1.0);
-                pw.setColor(x, y, new Color(Math.max(Math.min(output[0], 1.0), 0.0), Math.max(Math.min(output[1], 1.0), 0.0), Math.max(Math.min(output[2], 1.0), 0.0), 1.0));
+                Color color = new Color(
+                        Math.max(Math.min(output[0] * 0.5 + 0.5, 1.0), 0.0),
+                        Math.max(Math.min(output[1] * 0.5 + 0.5, 1.0), 0.0),
+                        Math.max(Math.min(output[2] * 0.5 + 0.5, 1.0), 0.0), 1.0);
+                pw.setColor(x, y, color);
             }
         }
     }

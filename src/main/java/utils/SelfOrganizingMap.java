@@ -44,8 +44,15 @@ public class SelfOrganizingMap {
         }
 
         // initialize weights
-        for (int i=0; i<weights.length; i++){
-            weights[i] = Math.random() * 0.01;
+        for (int n=0; n<numNeurons; n++) {
+            for (int i=0; i<inputSize; i++) {
+                if (i < dimensions) {
+                    weights[n * inputSize + i] = 0.5 * (neuronGridPositions[n * dimensions + i] / neuronPerDimension - 0.5);
+                }
+                else {
+                    weights[n * inputSize + i] = Math.random() * 0.005 - 0.0025;
+                }
+            }
         }
 
         // for faster calculations
