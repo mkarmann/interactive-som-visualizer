@@ -69,7 +69,7 @@ public class SelfOrganizingMap {
             double tmpMapPositions[] = new double[dimensions];
             double randomShift[] = new double[dimensions];
             for (int d=0; d<dimensions; d++) {
-                randomShift[d] = Math.random() * 0.5 - 0.25;
+                randomShift[d] = Math.random() - 0.5;
             }
             for (int i=0; i<numNeurons; i++) {
                 for (int d=0; d<dimensions; d++) {
