@@ -10,7 +10,9 @@ import javafx.scene.paint.Color;
  */
 public class SomWeightsPane extends AnimatedCanvasPane {
     private volatile SelfOrganizingMap som;
-    private final int PIXELS_WIDTH_PER_NEURON = 4;
+    private final int CANVAS_HEIGHT_1D = 20;
+    private final int CANVAS_SIZE_2D = 150;
+    private final int CANVAS_SIZE_3D = 44;
 
     public SomWeightsPane(SelfOrganizingMap som, double width, double height) {
         super(width, height);
@@ -26,12 +28,16 @@ public class SomWeightsPane extends AnimatedCanvasPane {
 
     private void updateCanvasSize() {
         Canvas canvas = getCanvas();
-        if (som.dimensions == 2) {
-            canvas.setWidth(som.neuronPerDimension * PIXELS_WIDTH_PER_NEURON);
-            canvas.setHeight(som.neuronPerDimension * PIXELS_WIDTH_PER_NEURON);
+        if (som.dimensions == 3) {
+            canvas.setWidth(CANVAS_SIZE_3D * som.neuronPerDimension);
+            canvas.setHeight(CANVAS_SIZE_3D);
+        }
+        else if (som.dimensions == 2) {
+            canvas.setWidth(CANVAS_SIZE_2D);
+            canvas.setHeight(CANVAS_SIZE_2D);
         }
         else {
-            canvas.setHeight(PIXELS_WIDTH_PER_NEURON * 3);
+            canvas.setHeight(CANVAS_HEIGHT_1D);
         }
     }
 
@@ -55,8 +61,14 @@ public class SomWeightsPane extends AnimatedCanvasPane {
         double[] output = new double[3];
         for(int y=0; y<height; y++){
             for (int x=0; x<width; x++){
-                input[0] = (double) x / width;
-                if (input.length == 2) {
+                if (input.length != 3) {
+                    input[0] = (double) x / width;
+                }
+                else {
+                    input[0] = (double)((x * som.neuronPerDimension) % width) / width;
+                    input[2] = (double)((x * som.neuronPerDimension) / width) / som.neuronPerDimension;
+                }
+                if (input.length > 1) {
                     input[1] = (double) y / height;
                 }
                 som.getNeuronWeightsFromGridPosition(input, output);

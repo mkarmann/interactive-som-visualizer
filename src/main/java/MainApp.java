@@ -89,8 +89,8 @@ public class MainApp extends Application {
         Scene scene = new Scene(rootPane);
         primaryStage.setScene(scene);
         primaryStage.setTitle("Interactive SOM visualizer");
-        primaryStage.setWidth(1000);
-        primaryStage.setHeight(700);
+        primaryStage.setWidth(1005);
+        primaryStage.setHeight(750);
         primaryStage.setOnCloseRequest(event -> {
             stopTraining();
             stopAnimation();
