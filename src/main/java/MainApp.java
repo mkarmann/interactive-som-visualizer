@@ -180,7 +180,7 @@ public class MainApp extends Application {
         int rowIndex = 0;
 
         GridPane canvasGrid = new GridPane();
-        gridPane.addRow(rowIndex++, new Label("Neuron weights (xyz values are rgb colors):"));
+        gridPane.addRow(rowIndex++, new Label("Neuron weights (each neuron/pixel has rgb weights):"));
 
         // canvas
         weightsVisualizer = new SomWeightsPane(som, 10,10);
