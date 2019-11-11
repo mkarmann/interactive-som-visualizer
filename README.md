@@ -49,18 +49,19 @@ To get more into details. Here is a detailed description of all the parameters:
 
 ### Input
 In this dropbox you can select a distribution you want the som to learn.
-| input                | description                                                       |
-|----------------------|-------------------------------------------------------------------|
-| Full Space           | Full rgb color space                                              |
-| Ball (Volume)        | The volume of a ball                                              |
-| Sphere (Surface)     | The surface of a ball                                             |
-| Peanut volume        | The volume of 2 intersecting balls (same density in intersection) |
-| 1 area distribution  | One dense point in the center                                     |
-| 2 areas distribution | Two dense points                                                  |
-| 3 areas distribution | Two dense points with the last one streched                       |
-| Plane                | A simple plane along the x and y axis                             |
-| Mandelbrot set       | The 2d mandelbrot set along the x and y axis                      |
-| Mandelbrot outline   | Outline of the 2d mandelbrot set                                  |
+
+| input                	| description                                                       	|
+|----------------------	|-------------------------------------------------------------------	|
+| Full Space           	| Full rgb color space                                              	|
+| Ball (Volume)        	| The volume of a ball                                              	|
+| Sphere (Surface)     	| The surface of a ball                                             	|
+| Peanut volume        	| The volume of 2 intersecting balls (same density in intersection) 	|
+| 1 area distribution  	| One dense point in the center                                     	|
+| 2 areas distribution 	| Two dense points                                                  	|
+| 3 areas distribution 	| Two dense points with the last one streched                       	|
+| Plane                	| A simple plane along the x and y axis                             	|
+| Mandelbrot set       	| The 2d mandelbrot set along the x and y axis                      	|
+| Mandelbrot outline   	| Outline of the 2d mandelbrot set                                  	|
 
 ### Neuron connections
 Here you can select to which internal structure the som should have.
