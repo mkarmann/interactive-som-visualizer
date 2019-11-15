@@ -1,4 +1,4 @@
-# Interactive som visualizer
+# Interactive Self Organizing Map Visualizer
 ![som map iamge](_images/ball_volume.png)
 
 This example application visualizes a Self Organizing Map (SOM) training process in 3d and lets you modify its parameters during training.
@@ -14,21 +14,21 @@ This example application visualizes a Self Organizing Map (SOM) training process
     - [Neighbourhood](#the-team)
 
 ## About
-A self organizing map is a type of artificial neural network which is used for dimensional reduction. The way it does that is by having a fixed map structure (like a 2d map of 10 by 10 neurons) and fitting it into the input distribution.
 
-For example: If we take the 3 dimensional color space (rgb) and map it to a 10 by 10 map it looks something like this (each pixel is one neuron):
+### Self organizing map
+A self organizing map is a type of artificial neural network which is used for dimensional reduction. The way it does that is by having neurons organized in a map structure (in shapes like lines, squares, cubes) and fitting this map into the input distribution.
 
-![som map iamge](_images/colorspace_to_2d_map.png)
+For example you can fit a line into the shape of the mandelbrot set (reduce 2d mandelbrot to 1d line):
+![som map iamge](_images/mandelbrot_line.png)
 
-In 3d the input space looks just like a cube in rgb space:
+If you want to know more about the algorithms behind a self organizing map, this blog might be interesting for you:
 
-![som map iamge](_images/colorspace_input.png)
+[Achraf KHAZRI - Self Organizing Maps](https://towardsdatascience.com/self-organizing-maps-1b7d2a84e065)
 
-Now we can visualize the 2d map in 3d by using the rgb information of each neuron (each vertex is one neuron):
+### The Application
+The entire application is written in pure Java 1.8.
 
-![som map iamge](_images/colorspace_with_2d_map.png)
-
-The entire application is written in pure Java 1.8. There are no additional libraries required. The training process of the som runs in a second thread. This way the visual updates do not slow down the training. Especially the 2d som takes a lot of time to visualize with big neuron counts.
+The training process of the som runs in a second thread. This way the visual updates do not slow down the training. Especially the 2d som takes a lot of time to visualize with big neuron counts.
 
 ## Installation
 Clone the repository with a simple clone command:
@@ -36,11 +36,16 @@ Clone the repository with a simple clone command:
 git clone https://github.com/mkarmann/interactive-som-visualizer
 ```
 
-Then open it in any Java editor of your choice or run it directly from the console.
+Then open it in any Java editor of your choice or run it directly from the console. No additional libraries are required!
 The main class is in [src/main/java/MainApp.java](src/main/java/MainApp.java)
 
 ## User interface
 ![som map iamge](_images/gui.png)
+
+* _top left_: Parameters of the self organizing map
+* _center_: 3d representation of the self organizing map and input distribution
+* _top_right_: Iteration counter and the display options for the 3d view
+* _bottom_left_: The resulting map with each pixel representing one neuron.
 
 ## Parameters
 Self organizing maps are very stable, so feel free to just play around with each slider!
@@ -65,7 +70,7 @@ In this dropbox you can select a distribution you want the som to learn.
 
 ### Neuron connections
 Here you can select to which internal structure the som should have.
-If you want a dimensional reduction from 3d to 2d, then simply select 2d. If you want 3d to 1d ... you get the idea.
+![dimensions radio boxes](_images/dimensionality.png)
 
 ### Learning rate
 The learningrate determines how big the changes of one iteration should be applied to the map.
@@ -76,8 +81,10 @@ Small steps help to find a fine and smooth map (used at the end).
 If one neuron gets updated, how much should its neighbours follow?
 The more you slide the slider to the right, the more neurons will follow each other and therefore stay in the internal shape.
 Is the slider to the left, each neuron can move freely without influencing the other ones.
+![dimensions radio boxes](_images/neighbourhood.png)
 
 ### Number of neurons
 More neurons means more information means more detailed representation.
 If you select a small number of neurons, the computation time will be much faster and the shape is easier to hold.
 If you select a large number of neurons, the computation time will slow down and the map gets more detailed and complex.
+![dimensions radio boxes](_images/number_neurons.png)
