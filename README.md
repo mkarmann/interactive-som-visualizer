@@ -3,19 +3,20 @@
 
 This example application visualizes a Self Organizing Map (SOM) training process in 3d and lets you modify its parameters during training.
 
-- [More about this vsiualizer](#installation)
+- [About](#About)
+    - [Self Organizing Map](#Self Organizing Map)
+    - [The Application](#The Application)
 - [Installation](#Installation)
-- [User interface](#getting-started)
-- [Parameter overview](#communication)
-    - [Input](#the-team)
-    - [Map dimensions](#the-team)
-    - [Learning rate](#releases-and-contributing)
-    - [Neighbourhood](#the-team)
-    - [Neighbourhood](#the-team)
+- [User interface](#User interface)
+- [Parameter overview](#Parameters)
+    - [Neuron connections](#Neuron connections)
+    - [Learning rate](#Learning rate)
+    - [Distance function](#Distance function)
+    - [Number of neurons](#Number of neurons)
 
 ## About
 
-### Self organizing map
+### Self Organizing Map
 A self organizing map is a type of artificial neural network which is used for dimensional reduction. The way it does that is by having neurons organized in a map structure (in shapes like lines, squares, cubes) and fitting this map into the input distribution.
 
 For example you can fit a line into the shape of the mandelbrot set (reduce 2d mandelbrot to 1d line):
