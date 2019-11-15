@@ -85,6 +85,6 @@ Is the slider to the left, each neuron can move freely without influencing the o
 
 ### Number of neurons
 More neurons means more information means more detailed representation.
-If you select a small number of neurons, the computation time will be much faster and the shape is easier to hold.
-If you select a large number of neurons, the computation time will slow down and the map gets more detailed and complex.
+If you select a small number of neurons, the computation will be much faster and the shape is easier to keep.
+If you select a large number of neurons, the computation will slow down and the map gets more detailed and complex.
 ![dimensions radio boxes](_images/number_neurons.png)
