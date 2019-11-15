@@ -4,15 +4,15 @@
 This example application visualizes a Self Organizing Map (SOM) training process in 3d and lets you modify its parameters during training.
 
 - [About](#About)
-    - [Self Organizing Map](#Self Organizing Map)
-    - [The Application](#The Application)
+    - [Self Organizing Map](#Self-Organizing-Map)
+    - [The Application](#The-Application)
 - [Installation](#Installation)
-- [User interface](#User interface)
+- [User interface](#User-interface)
 - [Parameter overview](#Parameters)
-    - [Neuron connections](#Neuron connections)
-    - [Learning rate](#Learning rate)
-    - [Distance function](#Distance function)
-    - [Number of neurons](#Number of neurons)
+    - [Neuron connections](#Neuron-connections)
+    - [Learning rate](#Learning-rate)
+    - [Distance function](#Distance-function)
+    - [Number of neurons](#Number-of-neurons)
 
 ## About
 
