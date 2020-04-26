@@ -9,7 +9,7 @@ This example application visualizes a Self Organizing Map (SOM) training process
 - [Installation](#installation)
 - [User interface](#User-interface)
 - [Parameter overview](#Parameters)
-    - [Neuron connections](#Neuron-connections)
+    - [Neuron connections](#Neuron-connections)     
     - [Learning rate](#Learning-rate)
     - [Distance function](#Distance-function)
     - [Number of neurons](#Number-of-neurons)
@@ -31,13 +31,18 @@ The entire application is written in pure Java 1.8.
 
 The training process of the som runs in a second thread. This way the visual updates do not slow down the training. Especially the 2d som takes a lot of time to visualize with big neuron counts.
 
+## Requierments
+`Java 1.8` or newer.
+
 ## Installation
-Clone the repository with a simple clone command:
+Download the executable jar file [builds/interactive-som-visualizer.jar](builds/interactive-som-visualizer.jar) and open it.
+
+Or clone the repository with `git`:
 ```
 git clone https://github.com/mkarmann/interactive-som-visualizer
 ```
 
-Then open it in any Java editor of your choice or run it directly from the console. No additional libraries are required!
+Then open it in any Java editor of your choice or run it directly from the console.
 The main class is in [src/main/java/MainApp.java](src/main/java/MainApp.java)
 
 ## User interface

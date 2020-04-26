@@ -22,8 +22,8 @@ import utils.Som3dCanvasPane;
 import utils.SomWeightsPane;
 
 public class MainApp extends Application {
-    public Som3dCanvasPane threeDVisualizer;              // 3d visualizer
-    public volatile SomWeightsPane weightsVisualizer;     // Weights visualizer
+    public Som3dCanvasPane threeDVisualizer;                    // 3d visualizer
+    public volatile SomWeightsPane weightsVisualizer;           // Weights visualizer
     public AnimationTimer animationTimer;                       // Timer for animating the iterations
     public volatile SelfOrganizingMap som;                      // Som instance
     public TrainingThread trainingThread;                       // Thread for training the som in parallel
