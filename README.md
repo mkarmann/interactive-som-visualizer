@@ -6,6 +6,7 @@ This example application visualizes a Self Organizing Map (SOM) training process
 - [About](#about)
     - [Self Organizing Map](#self-organizing-map)
     - [The Application](#the-application)
+- [Requirements](#requirements)
 - [Installation](#installation)
 - [User interface](#User-interface)
 - [Parameter overview](#Parameters)
@@ -31,7 +32,7 @@ The entire application is written in pure Java 1.8.
 
 The training process of the som runs in a second thread. This way the visual updates do not slow down the training. Especially the 2d som takes a lot of time to visualize with big neuron counts.
 
-## Requierments
+## Requirements
 `Java 1.8` or newer.
 
 ## Installation
